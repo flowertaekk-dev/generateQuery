@@ -25,6 +25,10 @@ def getInputFile():
 def getOutputFileName():
     pass
 
+# ask what kind of database is being used
+def getDatabase():
+    pass
+
 # Read file
 def readFile(file_name):
     with open('query.txt', 'r', encoding='utf8') as input_source: # TODO need to use argument
@@ -79,6 +83,7 @@ def writeQuery(query, output_file):
                         raise ValueError('Invalid format : {0}'.format(line_without_space))
 
                     # create query
+                    ## TODO need to convert also constraints
                     for code_def, code_type in mysql_def.items():
                         if (line_without_space.split(' ')[0] == code_def): # need refactoring
 

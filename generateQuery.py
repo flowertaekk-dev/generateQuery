@@ -9,17 +9,29 @@ from codeDef import *
 ################################# UTIL ##############################
 #####################################################################
 
-LF = '\n'
-TAB = '\t'
+#################################
+########## filter data ##########
+#################################
 
+# retrieve column name in a line
 def retrieve_column_name(query):
     column_name = re.split('[\s]', query)[1] # get column name only
     return column_name.replace(',', '') # remove comma if exists
 
-#####################################################################
-############################ CORE FUNCTION ##########################
-#####################################################################
+# retrieve constraint in a line
+def retrieve_constraint(query):
+    constraint = ''
+    for cons in constraints:
+        if cons in query:
+            constraint = ' ' + cons # add space to give space after data_type
+            break
+    return constraint
 
+#################################
+######## ask information ########
+#################################
+
+# ask query tempate file name
 def get_input_file_name():
     print('Enter input file name : ', end='')
     file_name = input()
@@ -31,6 +43,7 @@ def get_input_file_name():
 
     return file_name
 
+# ask output file name
 def get_output_file_name():
     print('Enter output file name : ', end='')
     file_name = input()
@@ -63,8 +76,29 @@ def get_database():
     
     return database.get(db)
 
+#################################
+########### Validation ##########
+#################################
 
-# Read file
+# check if written type is in support (if not, we can add it)
+def does_type_exist(line_without_space, data_type):
+    return line_without_space.split(' ')[0] == data_type
+
+#################################
+############# Common ############
+#################################
+
+def isLastLine(split_to_lines_by_LF, index):
+    return re.match('^\);', split_to_lines_by_LF[index + 1])
+
+#####################################################################
+############################ CORE FUNCTION ##########################
+#####################################################################
+
+#################################
+########### Read file ###########
+#################################
+
 def read_file(file_name):
     with open(file_name, 'r', encoding='utf8') as input_source:
         input_query = ''
@@ -86,7 +120,10 @@ def read_file(file_name):
 
     return input_query
 
-# Write file
+#################################
+########### Write file ##########
+#################################
+
 def write_query(query, output_file):
     with open(output_file, 'w', encoding='utf8') as output_source:
         result_query = ''
@@ -94,9 +131,9 @@ def write_query(query, output_file):
         db = get_database()
 
         try:
-            split_to_lines = query.split('\n')
+            split_to_lines_by_LF = query.split('\n')
 
-            for i, line in enumerate(split_to_lines, start=0):
+            for i, line in enumerate(split_to_lines_by_LF, start=0):
                 line_without_space = line.strip()
 
                 # skip empty line
@@ -105,38 +142,50 @@ def write_query(query, output_file):
 
                 # check if it is create statement
                 if line_without_space.startswith('CREATE'):
-                    result_query += '{0}{1}'.format(line_without_space, LF)
+                    result_query += '{0}\n'.format(line_without_space)
                     continue
 
                 # check query format
                 if re.match('^[A-Z]{1,2}\s[0-9a-zA-Z]*', line_without_space):
+
                     # check unexpected character
+                    '''
+                        It(db.key) should be single character otherwise certain character has already been used.
+                        ex)
+                            Let's say we define like:
+                                B - BOOLEAN (O)
+                            Next, we want to add new definition like:
+                                B - BLOB (X)
+                            But, 'B' has already been used. Therefore, we need to find out other way to express it like:
+                                BL - BLOB (O)
+                        So, we can avoid Vaildation error even if it is actually 'BL' since 'B' must have been defined.
+
+                        NOT SURE IT IS THE BEST WAY.
+                    '''
                     if not line_without_space[0] in db.keys():
                         raise ValueError('Invalid format : {0}'.format(line_without_space))
 
                     # create query
                     for code_def, code_type in db.items():
-                        if (line_without_space.split(' ')[0] == code_def): # need refactoring
+                        # check if specified data type is supported
+                        if (not does_type_exist(line_without_space, code_def)):
+                            continue;
 
-                            # need refactoring
-                            if re.match('^\);', split_to_lines[i + 1]):
-                                result_query += '{tab}{column} {data_type}{LF});'\
-                                    .format(tab=TAB, column=retrieve_column_name(line_without_space), data_type=code_type, LF=LF)
-                                break
-
-
-                            # check if it has constraint
-                            for cons in constraints:
-                                if cons in line_without_space:
-                                    constraint = ' ' + cons # add space to give space from data_type
-                                    break
-
-                            result_query += '{tab}{column} {data_type}{constraint},{LF}'\
-                                .format(tab=TAB, column=retrieve_column_name(line_without_space), data_type=code_type, constraint=constraint, LF=LF)
-
-                            # remove constraint
-                            constraint = ''
+                        # check if it is the last line
+                        if isLastLine(split_to_lines_by_LF, i):
+                            result_query += '\t{column} {data_type}\n);'\
+                                .format(column=retrieve_column_name(line_without_space), data_type=code_type)
                             break
+
+                        # check if it has constraint
+                        constraint = retrieve_constraint(line_without_space)
+
+                        result_query += '\t{column} {data_type}{constraint},\n'\
+                            .format(column=retrieve_column_name(line_without_space), data_type=code_type, constraint=constraint)
+
+                        # remove constraint
+                        constraint = ''
+                        break
             else:
                 output_source.write(result_query)
 

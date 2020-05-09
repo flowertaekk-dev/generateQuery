@@ -1,5 +1,8 @@
 # generateQuery
 
+It is to generate CREATE TABLE script with specified template.
+It can help to generate CREATE scripts for various database with a template.
+
 # Writing rules
 ```
 CREATE TABLE $TABLE_NAME

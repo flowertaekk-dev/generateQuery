@@ -1,37 +1,72 @@
 #!/usr/bin/python3
 
 import re
-from codeDef import mysql_def, constraints
+from pathlib import Path
+
+from codeDef import *
 
 #####################################################################
 ################################# UTIL ##############################
 #####################################################################
 
-def retrieveColumnName(query):
-    column_name = re.split('[\s]', query)[1] # get column name only
-    return column_name.replace(',', '') # remove comma if exists
-
 LF = '\n'
 TAB = '\t'
+
+def retrieve_column_name(query):
+    column_name = re.split('[\s]', query)[1] # get column name only
+    return column_name.replace(',', '') # remove comma if exists
 
 #####################################################################
 ############################ CORE FUNCTION ##########################
 #####################################################################
 
-# TODO need to get file name from user
-def getInputFile():
-    pass
+def get_input_file_name():
+    print('Enter input file name : ', end='')
+    file_name = input()
 
-def getOutputFileName():
-    pass
+    # File not found!
+    path = Path(file_name)
+    if not path.is_file():
+        raise FileNotFoundError
+
+    return file_name
+
+def get_output_file_name():
+    print('Enter output file name : ', end='')
+    file_name = input()
+    
+    # check if exists?
+    path = Path(file_name)
+    if path.is_file():
+        # ask once more if they are sure to overwrite
+        print('The existing file will be overwritten. Are you sure of doing it?\n(y/n)', end='')
+        overwrite = input()
+
+        if overwrite == 'y':
+            pass
+        elif overwrite == 'n':
+            file_name = get_output_file_name()
+        else:
+            print('Unexpected character : {0}'.format(overwrite))
+            exit()
+
+    return file_name
 
 # ask what kind of database is being used
-def getDatabase():
-    pass
+def get_database():
+    print('Enter the target database : ', end='')
+    db = input()
+
+    if not db in database.keys():
+        print('Sorry. {0} is unregistered database.'.format(db))
+        exit()
+    
+    return database.get(db)
+
 
 # Read file
-def readFile(file_name):
-    with open('query.txt', 'r', encoding='utf8') as input_source: # TODO need to use argument
+def read_file(file_name):
+    with open(file_name, 'r', encoding='utf8') as input_source:
         input_query = ''
 
         while True:
@@ -52,11 +87,11 @@ def readFile(file_name):
     return input_query
 
 # Write file
-def writeQuery(query, output_file):
-    with open('output.txt', 'w', encoding='utf8') as output_source:
-        # better to ask file name if it exists
+def write_query(query, output_file):
+    with open(output_file, 'w', encoding='utf8') as output_source:
+        result_query = ''
 
-        result = ''
+        db = get_database()
 
         try:
             split_to_lines = query.split('\n')
@@ -70,41 +105,40 @@ def writeQuery(query, output_file):
 
                 # check if it is create statement
                 if line_without_space.startswith('CREATE'):
-                    result += '{0}{1}'.format(line_without_space, LF)
+                    result_query += '{0}{1}'.format(line_without_space, LF)
                     continue
 
                 # check query format
                 if re.match('^[A-Z]{1,2}\s[0-9a-zA-Z]*', line_without_space):
                     # check unexpected character
-                    if not line_without_space[0] in mysql_def.keys():
+                    if not line_without_space[0] in db.keys():
                         raise ValueError('Invalid format : {0}'.format(line_without_space))
 
                     # create query
-                    ## TODO need to convert also constraints
-                    for code_def, code_type in mysql_def.items():
+                    for code_def, code_type in db.items():
                         if (line_without_space.split(' ')[0] == code_def): # need refactoring
 
                             # need refactoring
                             if re.match('^\);', split_to_lines[i + 1]):
-                                result += '{tab}{column} {data_type}{LF});'\
-                                    .format(tab=TAB, column=retrieveColumnName(line_without_space), data_type=code_type, LF=LF)
+                                result_query += '{tab}{column} {data_type}{LF});'\
+                                    .format(tab=TAB, column=retrieve_column_name(line_without_space), data_type=code_type, LF=LF)
                                 break
 
 
                             # check if it has constraint
                             for cons in constraints:
                                 if cons in line_without_space:
-                                    constraint = cons
+                                    constraint = ' ' + cons # add space to give space from data_type
                                     break
 
-                            result += '{tab}{column} {data_type} {constraint},{LF}'\
-                                .format(tab=TAB, column=retrieveColumnName(line_without_space), data_type=code_type, constraint=constraint, LF=LF)
+                            result_query += '{tab}{column} {data_type}{constraint},{LF}'\
+                                .format(tab=TAB, column=retrieve_column_name(line_without_space), data_type=code_type, constraint=constraint, LF=LF)
 
                             # remove constraint
                             constraint = ''
                             break
             else:
-                output_source.write(result)
+                output_source.write(result_query)
 
         except ValueError as err:
             print(err)
@@ -114,11 +148,11 @@ def writeQuery(query, output_file):
 ################################# LOGIC #############################
 #####################################################################
 
-input_file = getInputFile()
-output_file = getOutputFileName()
+input_file = get_input_file_name()
+output_file = get_output_file_name()
 
 # retrieve query
-query = readFile(input_file)
+query = read_file(input_file)
 
 # write query
-writeQuery(query, output_file)
+write_query(query, output_file)

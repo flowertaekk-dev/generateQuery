@@ -88,9 +88,16 @@ def does_type_exist(line_without_space, data_type):
 ############# Common ############
 #################################
 
+# check if it is the last query line
 def isLastLine(split_to_lines_by_LF, index):
     return re.match('^\);', split_to_lines_by_LF[index + 1])
 
+# translate template to query line by line
+def generateQuery(isLastLine: bool, query_line: str, data_type: str, constraint=''):
+    line = '\t{column} {data_type}{constraint}\n);' if isLastLine else '\t{column} {data_type}{constraint},\n'
+
+    return line.format(column=retrieve_column_name(query_line), data_type=data_type, constraint=constraint)
+    
 #####################################################################
 ############################ CORE FUNCTION ##########################
 #####################################################################
@@ -171,17 +178,17 @@ def write_query(query, output_file):
                         if (not does_type_exist(line_without_space, code_def)):
                             continue;
 
-                        # check if it is the last line
-                        if isLastLine(split_to_lines_by_LF, i):
-                            result_query += '\t{column} {data_type}\n);'\
-                                .format(column=retrieve_column_name(line_without_space), data_type=code_type)
-                            break
-
                         # check if it has constraint
                         constraint = retrieve_constraint(line_without_space)
 
-                        result_query += '\t{column} {data_type}{constraint},\n'\
-                            .format(column=retrieve_column_name(line_without_space), data_type=code_type, constraint=constraint)
+                        '''
+                            Check if it is the last line.
+                            If it is the last line, add ');' at the end of the line instead of comma
+                        '''
+                        if isLastLine(split_to_lines_by_LF, i):
+                            result_query += generateQuery(True, line_without_space, code_type, constraint)
+                        else:
+                            result_query += generateQuery(False, line_without_space, code_type, constraint)
 
                         # remove constraint
                         constraint = ''

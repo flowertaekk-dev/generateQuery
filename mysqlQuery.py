@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 import re
-from codeDef import mysql_def
+from codeDef import mysql_def, constraints
 
 #####################################################################
 ################################# UTIL ##############################
@@ -56,9 +56,6 @@ def writeQuery(query, output_file):
     with open('output.txt', 'w', encoding='utf8') as output_source:
         # better to ask file name if it exists
 
-        # TODO add validation
-            # does it start with unexpected character?
-
         result = ''
 
         try:
@@ -89,19 +86,29 @@ def writeQuery(query, output_file):
 
                             # need refactoring
                             if re.match('^\);', split_to_lines[i + 1]):
-                                result += '{tab}{column} {data_type}{LF}'\
+                                result += '{tab}{column} {data_type}{LF});'\
                                     .format(tab=TAB, column=retrieveColumnName(line_without_space), data_type=code_type, LF=LF)
                                 break
 
-                            result += '{tab}{column} {data_type},{LF}'\
-                                .format(tab=TAB, column=retrieveColumnName(line_without_space), data_type=code_type, LF=LF)
+
+                            # check if it has constraint
+                            for cons in constraints:
+                                if cons in line_without_space:
+                                    constraint = cons
+                                    break
+
+                            result += '{tab}{column} {data_type} {constraint},{LF}'\
+                                .format(tab=TAB, column=retrieveColumnName(line_without_space), data_type=code_type, constraint=constraint, LF=LF)
+
+                            # remove constraint
+                            constraint = ''
                             break
+            else:
+                output_source.write(result)
 
         except ValueError as err:
             print(err)
         
-        print('{0});'.format(result))
-        output_source.write('{0});'.format(result))
 
 #####################################################################
 ################################# LOGIC #############################

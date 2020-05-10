@@ -3,6 +3,7 @@
 import re
 from codeDef import *
 from utils import *
+from domain.column_definition import Column
     
 #####################################################################
 ############################## Read file ############################
@@ -74,27 +75,17 @@ def write_query(query, output_file):
                     if not line_without_space[0] in db.keys():
                         raise ValueError('Invalid format : {0}'.format(line_without_space))
 
-                    # create query
-                    for code_def, code_type in db.items():
-                        # check if specified data type is supported
-                        if (not validation.does_type_exist(line_without_space, code_def)):
-                            continue;
+                    column = Column(line_without_space, db)
 
-                        # check if it has constraint
-                        constraint = filters.retrieve_constraint(line_without_space)
+                    '''
+                        Check if it is the last line.
+                        If it is the last line, add ');' at the end of the line instead of comma
+                    '''
+                    if util.isLastLine(split_to_lines_by_LF, i):
+                        result_query += util.generateQuery(True, column)
+                    else:
+                        result_query += util.generateQuery(False, column)
 
-                        '''
-                            Check if it is the last line.
-                            If it is the last line, add ');' at the end of the line instead of comma
-                        '''
-                        if util.isLastLine(split_to_lines_by_LF, i):
-                            result_query += util.generateQuery(True, line_without_space, code_type, constraint)
-                        else:
-                            result_query += util.generateQuery(False, line_without_space, code_type, constraint)
-
-                        # remove constraint
-                        constraint = ''
-                        break
             else:
                 output_source.write(result_query)
 

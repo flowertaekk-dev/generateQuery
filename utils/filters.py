@@ -20,3 +20,13 @@ def retrieve_constraint(query):
             constraint = ' ' + cons # add space to give space after data_type
             break
     return constraint
+
+# retrieve comment in a line
+def retrieve_comment(query):
+    comment = ''
+
+    result = re.search('[-]{2,}.*', query)
+    if result:
+        comment = result.group(0)
+
+    return comment

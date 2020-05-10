@@ -3,7 +3,16 @@
 It is to generate CREATE TABLE script with specified template.\
 It can help to generate CREATE scripts for various database with a template.
 
-# Writing rules
+# How to use?
+
+```
+$ ./generateQuery.py
+Enter input file name : [template file name]
+Enter output file name : [output file name]
+Enter the target database : [Database engine name(mysql/db2 ...)]
+```
+
+# Writing rules (Template file example)
 ```
 CREATE TABLE $TABLE_NAME
 I column_name PRIMARY KEY,  -- I -> INTEGER / INT

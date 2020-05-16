@@ -16,6 +16,13 @@ database = {
         'T'     : 'VARCHAR(255)',
         'B'     : 'BOOLEAN',
         'BL'    : 'BLOB'
+    },
+    'derby': {
+        'I'     : 'INTEGER',
+        'T'     : 'TEXT',
+        'B'     : 'BOOLEAN',
+        'BL'    : 'BYTEA'
+
     }
 }
 

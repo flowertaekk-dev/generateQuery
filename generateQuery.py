@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 import re
+import sys
 from codeDef import *
 from utils import *
 from domain.column_definition import Column
@@ -10,6 +11,10 @@ from domain.column_definition import Column
 #####################################################################
 
 def read_file(file_name):
+
+    if file_name is None:
+       file_name = ask_infos.get_input_file_name()
+
     with open(file_name, 'r', encoding='utf8') as input_source:
         input_query = ''
 
@@ -35,6 +40,10 @@ def read_file(file_name):
 #####################################################################
 
 def write_query(query, output_file):
+
+    if output_file is None:
+        output_file = ask_infos.get_output_file_name()
+
     with open(output_file, 'w', encoding='utf8') as output_source:
         result_query = ''
 
@@ -97,8 +106,7 @@ def write_query(query, output_file):
 ################################# LOGIC #############################
 #####################################################################
 
-input_file = ask_infos.get_input_file_name()
-output_file = ask_infos.get_output_file_name()
+(input_file, output_file) = ask_infos.get_arguments(sys.argv)
 
 # retrieve query
 query = read_file(input_file)

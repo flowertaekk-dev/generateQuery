@@ -2,10 +2,42 @@
 
 from pathlib import Path
 from codeDef import *
+from utils.validation import does_the_same_file_name_exist
 
-#################################
-######## ask information ########
-#################################
+############################################
+######## retrieve command arguments ########
+############################################
+
+# return command argument
+def get_arguments(args):
+    input_file, output_file = None, None
+
+    if not len(args):
+        return None
+
+    input_file_index = args.index('-i') if '-i' in args else None
+    output_file_index = args.index('-o') if '-o' in args else None
+
+    try:
+        if input_file_index is not None:
+            input_file = args[input_file_index + 1]
+
+        if output_file_index is not None:
+            output_file = args[output_file_index + 1]
+            does_the_same_file_name_exist(output_file)
+
+        return (input_file, output_file)
+
+    except IndexError as ex:
+        print('argument error: ', ex)
+        exit()
+
+    return None
+
+
+############################################
+############# ask information ##############
+############################################
 
 # ask query tempate file name
 def get_input_file_name():
@@ -24,20 +56,8 @@ def get_output_file_name():
     print('Enter output file name : ', end='')
     file_name = input()
     
-    # check if exists?
-    path = Path(file_name)
-    if path.is_file():
-        # ask once more if they are sure to overwrite
-        print('The existing file will be overwritten. Are you sure of doing it?\n(y/n)', end='')
-        overwrite = input()
-
-        if overwrite == 'y':
-            pass
-        elif overwrite == 'n':
-            file_name = get_output_file_name()
-        else:
-            print('Unexpected character : {0}'.format(overwrite))
-            exit()
+    # Check if the same file name exists
+    does_the_same_file_name_exist(file_name)
 
     return file_name
 

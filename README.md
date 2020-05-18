@@ -39,3 +39,8 @@ BL column_name              -- BL -> BLOB
     - VARCHAR(255)
     - BOOLEAN
     - BLOB
+- derby
+    - INTEGER
+    - TEXT
+    - BOOLEAN
+    - BYTEA

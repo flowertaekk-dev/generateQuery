@@ -14,7 +14,7 @@ def isLastLine(split_to_lines_by_LF, index):
 
 # translate template to query line by line
 def generateQuery(isLastLine: bool, column: Column):
-    line = '\t{column} {data_type}{constraint} {comment}\n);' if isLastLine else '\t{column} {data_type}{constraint}, {comment}\n'
+    line = '\t{column} {data_type}{constraint} {comment}\n);\n' if isLastLine else '\t{column} {data_type}{constraint}, {comment}\n'
 
     column_name = column.get_column_name()
     data_type = column.get_data_type()

@@ -16,13 +16,17 @@ Enter the target database : [Database engine name(mysql/db2 ...)]
 $ ./generateQuery.py [-i template file] [-o output file]
 Enter the target database : [Database engine name(mysql/db2 ...)]
 ```
+## Help
+```
+$ ./generateQuery.py --help
+```
 
 # Writing rules (Template file example)
 ```
 CREATE TABLE $TABLE_NAME (
-I column_name PRIMARY KEY,  -- I -> INTEGER / INT
-T column_name,              -- T -> TEXT / VARCHAR
-B column_name,              -- B -> BOOLEAN
+I column_name PRIMARY KEY,  -- I  -> INTEGER / INT
+T column_name,              -- T  -> TEXT / VARCHAR
+B column_name,              -- B  -> BOOLEAN
 BL column_name              -- BL -> BLOB
 );
 ```

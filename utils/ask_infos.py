@@ -3,6 +3,7 @@
 from pathlib import Path
 from codeDef import *
 from utils.validation import does_the_same_file_name_exist
+from utils.messages import messages
 
 ############################################
 ######## retrieve command arguments ########
@@ -14,6 +15,10 @@ def get_arguments(args):
 
     if not len(args):
         return None
+
+    if args[1] == '--help':
+        print(messages.get(args[1]))
+        exit()
 
     input_file_index = args.index('-i') if '-i' in args else None
     output_file_index = args.index('-o') if '-o' in args else None
